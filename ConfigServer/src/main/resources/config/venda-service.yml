@@ -8,8 +8,8 @@ spring:
       active: native
   data:
       mongodb:
-        uri: mongodb://localhost:27017
-        database: venda-service
+        uri: mongodb://localhost:27017/Sales?authSource=admin&readPreference=primary&appname=MongoDB%20Compass&directConnection=true&ssl=false
+        database: Sales
         auto-index-creation: true
 
 application:
@@ -19,4 +19,4 @@ application:
   clienteService:
     url: http://localhost:8081
     endpointConsultarCliente: ${application.clienteService.url}/cliente/isCadastrado/{id}
-application-version: 2.0
+application-version: 1.0
