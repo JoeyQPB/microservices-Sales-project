@@ -2,8 +2,9 @@ package com.joey.VendasServer.domain.enums;
 
 public enum Status {
 	INICIADA(0),
-	CONCLUIDA(1),
-	CANCELADA(2);
+	ATIVA(1),
+	CONCLUIDA(2),
+	CANCELADA(3);
 	
     private final int codigo;
 

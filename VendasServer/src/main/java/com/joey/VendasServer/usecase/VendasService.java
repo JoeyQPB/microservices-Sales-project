@@ -1,5 +1,6 @@
 package com.joey.VendasServer.usecase;
 
+import java.time.Instant;
 import java.util.HashSet;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,9 +28,10 @@ public class VendasService {
 	private ClienteService clienteService;
 	
 	@Autowired
-	public VendasService(IVendaRepository repository, IProdutoService produtoService) {
+	public VendasService(IVendaRepository repository, IProdutoService produtoService, ClienteService clienteService) {
 		this.repository = repository;
 		this.produtoService = produtoService;
+		this.clienteService = clienteService;
 	}
 	
 	public Page<Venda> getAll(Pageable pageable) {
@@ -41,14 +43,14 @@ public class VendasService {
 				.orElseThrow(() -> new EntityNotFoundException(Venda.class, "codigo", codigo));
 	}
 	
-	private Venda getById(String id) {
+	public Venda getById(String id) {
 		return this.repository.findById(id)
 				.orElseThrow(() -> new EntityNotFoundException(Venda.class, "id", id));
 		
 	}
 
 	public Venda create(@Valid VendaDTO vendaDTO) {
-		Venda venda = convertToDomain(vendaDTO, Status.INICIADA);
+		Venda venda = convertToDomain(vendaDTO);
 		validarCliente(venda.getClienteId());
 		venda.recalcularValorTotalVenda();
 		return this.repository.insert(venda);
@@ -61,29 +63,31 @@ public class VendasService {
 		}
 	}
 	
-	private Venda convertToDomain(@Valid VendaDTO vendaDTO, Status status) {
+	private Venda convertToDomain(@Valid VendaDTO vendaDTO) {
 		Venda venda = new Venda();
 		venda.setClienteId(vendaDTO.clienteId());
 		venda.setCodigo(vendaDTO.codigo());
-		venda.setDataVenda(vendaDTO.dataVenda());
-		venda.setStatus(status);
+		venda.setDataVenda(Instant.now());
+		venda.setStatus(Status.getStatusByCodigo(0));
 		venda.setValorTotal(0.0);
 		venda.setProdutos(new HashSet<ProdutoQuantidade>());
 		return venda;
 	}
 	
-	public Venda update(@Valid Venda venda) {
+	public Venda update(String id, Integer statusCode) {
+		Venda venda = getById(id);
+		venda.setStatus(Status.getStatusByCodigo(statusCode));
 		return this.repository.save(venda);
 	}
 	
-	public Venda finalizar(String id) {
+	public Venda finalizarVenda(String id) {
 		Venda venda = getById(id);
 		venda.validarStatus();
 		venda.setStatus(Status.CONCLUIDA);
 		return this.repository.save(venda);
 	}
 	
-	public Venda cancelar(String id) {
+	public Venda cancelarVenda(String id) {
 		Venda venda = getById(id);
 		venda.validarStatus();
 		venda.setStatus(Status.CANCELADA);
